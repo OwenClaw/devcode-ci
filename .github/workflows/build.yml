@@ -60,3 +60,14 @@ jobs:
           test -f packages/opencode/dist/deveco-darwin-arm64/bin/deveco
           test -f packages/opencode/dist/deveco-darwin-x64/bin/deveco
           test -f packages/opencode/dist/deveco-windows-x64/bin/deveco.exe
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deveco-cli-${{ github.run_id }}
+          path: |
+            packages/opencode/dist/deveco-darwin-arm64/
+            packages/opencode/dist/deveco-darwin-x64/
+            packages/opencode/dist/deveco-windows-x64/
+          retention-days: 30
+          if-no-files-found: error
