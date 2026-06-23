@@ -1,0 +1,61 @@
+name: build
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+
+jobs:
+  build-cli:
+    name: build-cli
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Configure git identity
+        run: |
+          git config --global user.email "bot@deveco-code.dev"
+          git config --global user.name "deveco-ci"
+
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('turbo.json', '**/package.json') }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      - name: Build
+        run: bun packages/opencode/script/build.ts
+
+      - name: Verify outputs
+        run: |
+          test -f packages/opencode/dist/deveco-darwin-arm64/bin/deveco
+          test -f packages/opencode/dist/deveco-darwin-x64/bin/deveco
+          test -f packages/opencode/dist/deveco-windows-x64/bin/deveco.exe
