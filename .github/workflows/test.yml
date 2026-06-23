@@ -40,13 +40,15 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
+          - windows-latest
           - macos-latest
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     defaults:
       run:
         shell: bash
+    env:
+      OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
